@@ -14,5 +14,5 @@ go run . gs://<bucket>/<path> <block_offset>
 ### Rust
 
 ```bash
-cargo run gs://<bucket>/<path> <block_offset>
+cargo run -- gs://<bucket>/<path> <block_offset>
 ```
