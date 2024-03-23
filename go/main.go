@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -14,9 +15,9 @@ import (
 
 func main() {
 	arguments := os.Args
-	if len(arguments) != 2 {
+	if len(arguments) != 3 {
 		fmt.Fprintf(os.Stderr,
-			"Usage: %s <merged_blocks_store_url>",
+			"Usage: %s <merged_blocks_store_url> <block_offset>",
 			arguments[0],
 		)
 		os.Exit(1)
@@ -28,6 +29,8 @@ func main() {
 	store, err := dstore.NewStore(arguments[1], "dbin.zst", "none", false)
 	cli.NoError(err, "unable to create store")
 
+	blockOffset := readBlockOffset(arguments[2])
+
 	start := time.Now()
 	testDuration := 120 * time.Second
 	totalBytes := 0
@@ -38,7 +41,7 @@ func main() {
 
 	ctx := context.Background()
 	for i := 0; 1 < 1000; i++ {
-		blockNum := uint64(i*100) + 13_000_000
+		blockNum := uint64(i*100) + blockOffset
 		filename := fmt.Sprintf("%010d", blockNum)
 
 		func() {
@@ -79,6 +82,13 @@ func main() {
 	)
 
 	fmt.Printf("Read %d bytes in %s\n", totalBytes, time.Since(start))
+}
+
+func readBlockOffset(in string) uint64 {
+	blockOffset, err := strconv.ParseUint(in, 0, 64)
+	cli.NoError(err, "unable to parse block offset")
+
+	return blockOffset
 }
 
 func bytesRate(byteCount uint64, period time.Duration) string {

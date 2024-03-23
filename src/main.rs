@@ -9,15 +9,16 @@ use std::{
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     let arguments = env::args().collect::<Vec<String>>();
-    if arguments.len() != 2 {
+    if arguments.len() != 3 {
         eprintln!(
-            "Usage: {} <merged_blocks_store_url>",
-            arguments.first().expect("arguments is len 2")
+            "Usage: {} <merged_blocks_store_url> <block_offset>",
+            arguments.first().expect("arguments is len 3")
         );
         std::process::exit(1);
     }
 
-    let blocks_store = store::new(arguments.get(1).expect("arguments is len 2"))?;
+    let blocks_store = store::new(arguments.get(1).expect("arguments is len 3"))?;
+    let block_offset = read_block_offset(arguments.get(2).expect("arguments is len 3"))?;
 
     let start = std::time::Instant::now();
     let test_duration = Duration::from_secs(120);
@@ -28,7 +29,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let mut window_bytes = 0;
 
     for i in 0..1000 {
-        let block_number = (i * 100) + 13_000_000;
+        let block_number = (i * 100) + block_offset;
         let filename = format!("{:010}.dbin.zst", block_number);
 
         let mut reader = blocks_store
@@ -60,6 +61,12 @@ async fn main() -> Result<(), anyhow::Error> {
     );
 
     Ok(())
+}
+
+fn read_block_offset(input: &str) -> Result<u64, anyhow::Error> {
+    input
+        .parse()
+        .with_context(|| format!("Invalid block offset: {}", input))
 }
 
 fn bytes_rate(byte_count: usize, period: Duration) -> String {
