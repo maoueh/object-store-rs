@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Instant};
+use std::sync::Arc;
 
 use anyhow::Context;
 use bytes::Bytes;
@@ -64,9 +64,7 @@ impl Store {
         &self,
         path: &String,
     ) -> Result<BoxStream<'static, Result<Bytes, object_store::Error>>, anyhow::Error> {
-        let start = Instant::now();
         let content = self.store.get(&self.join_path(path)).await?;
-        println!("Get stream took: {:?}", start.elapsed());
 
         Ok(content.into_stream())
     }

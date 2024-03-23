@@ -35,9 +35,14 @@ func main() {
 	testDuration := 120 * time.Second
 	totalBytes := 0
 
+	totalFetchTime := time.Duration(0)
+	totalFetchCount := 0
+
 	windowStart := time.Now()
 	windowPeriod := 5 * time.Second
 	windowBytes := 0
+
+	fmt.Printf("Starting read test (transfer rate will be printed each %s)\n", windowPeriod)
 
 	ctx := context.Background()
 	for i := 0; 1 < 1000; i++ {
@@ -49,7 +54,9 @@ func main() {
 			reader, err := store.OpenObject(ctx, filename)
 			cli.NoError(err, "unable to open object")
 			defer reader.Close()
-			fmt.Printf("Get stream took: %s\n", time.Since(openStart))
+
+			totalFetchTime += time.Since(openStart)
+			totalFetchCount++
 
 			for {
 				data, err := reader.Read(buffer)
@@ -74,14 +81,22 @@ func main() {
 		}
 	}
 
+	fmt.Println()
+	fmt.Printf("Overall average fetch time: %s (%d fetches, %.2f%% of total time)\n",
+		totalFetchTime/time.Duration(totalFetchCount),
+		totalFetchCount,
+		percentageOfTotalTime(totalFetchTime, testDuration),
+	)
 	fmt.Printf(
-		"Overall speed: %s (%d bytes in %s)\n",
+		"Overall transfer rate: %s (%d bytes in %s)\n",
 		bytesRate(uint64(totalBytes), testDuration),
 		totalBytes,
 		time.Since(start),
 	)
+}
 
-	fmt.Printf("Read %d bytes in %s\n", totalBytes, time.Since(start))
+func percentageOfTotalTime(counter time.Duration, total time.Duration) float64 {
+	return float64(counter) / float64(total) * 100
 }
 
 func readBlockOffset(in string) uint64 {
