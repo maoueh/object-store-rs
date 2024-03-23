@@ -23,9 +23,9 @@ func main() {
 	}
 
 	// Keep a buffer of 16KiB to read the object
-	buffer := make([]byte, 16*1024)
+	buffer := make([]byte, 1*1024)
 
-	store, err := dstore.NewDBinStore(arguments[1])
+	store, err := dstore.NewStore(arguments[1], "dbin.zst", "none", false)
 	cli.NoError(err, "unable to create store")
 
 	start := time.Now()
@@ -38,7 +38,7 @@ func main() {
 
 	ctx := context.Background()
 	for i := 0; 1 < 1000; i++ {
-		blockNum := uint64(i * 100)
+		blockNum := uint64(i*100) + 13_000_000
 		filename := fmt.Sprintf("%010d", blockNum)
 
 		func() {

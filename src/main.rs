@@ -28,7 +28,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let mut window_bytes = 0;
 
     for i in 0..1000 {
-        let block_number = i * 100;
+        let block_number = (i * 100) + 13_000_000;
         let filename = format!("{:010}.dbin.zst", block_number);
 
         let mut reader = blocks_store
